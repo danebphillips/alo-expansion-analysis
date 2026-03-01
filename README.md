@@ -98,4 +98,4 @@ To set a custom landing page, rename `alo_site_analysis.html` to `index.html` (t
 
 ---
 
-*Built Q1 2025 · Data reflects late 2024 store counts · For strategy/analytical use only*
+For strategy/analytical use only
