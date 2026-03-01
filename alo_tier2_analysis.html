@@ -1,0 +1,1002 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Alo — Tier 2 Site-Level Analysis</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=Libre+Franklin:wght@200;300;400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --ink:    #141210;
+  --paper:  #f7f4ef;
+  --cream:  #ede9e0;
+  --rule:   rgba(20,18,16,.1);
+  --accent: #2c5282;   /* deep navy */
+  --amber:  #b45309;
+  --green:  #276749;  /* forest */
+  --rose:   #9b2335;
+  --mist:   #718096;
+  --col1: #2c5282;  /* venue */
+  --col2: #276749;  /* trade */
+  --col3: #744210;  /* cotenancy */
+  --col4: #553c9a;  /* access */
+  --col5: #9b2335;  /* re_econ */
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { font-size: 14px; }
+body {
+  background: var(--paper);
+  color: var(--ink);
+  font-family: 'Libre Franklin', sans-serif;
+  font-weight: 300;
+  line-height: 1.65;
+  min-height: 100vh;
+}
+
+/* ── MASTHEAD ── */
+.masthead {
+  background: var(--ink);
+  padding: 52px 64px 40px;
+  position: relative;
+  overflow: hidden;
+}
+.masthead::before {
+  content: 'TIER 2';
+  position: absolute;
+  right: 40px; top: 50%;
+  transform: translateY(-50%);
+  font-family: 'Playfair Display', serif;
+  font-size: 120px;
+  font-weight: 600;
+  color: rgba(255,255,255,.04);
+  letter-spacing: -4px;
+  pointer-events: none;
+  line-height: 1;
+}
+.masthead-eyebrow {
+  font-size: 10px;
+  letter-spacing: .22em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,.4);
+  margin-bottom: 14px;
+}
+.masthead h1 {
+  font-family: 'Playfair Display', serif;
+  font-size: 44px;
+  font-weight: 400;
+  color: #fff;
+  line-height: 1.15;
+  max-width: 640px;
+}
+.masthead h1 em {
+  font-style: italic;
+  color: rgba(255,255,255,.55);
+}
+.masthead-meta {
+  margin-top: 18px;
+  font-size: 11px;
+  color: rgba(255,255,255,.35);
+  letter-spacing: .06em;
+}
+
+/* ── RULE LINE NAV ── */
+.rule-nav {
+  background: var(--ink);
+  border-top: 1px solid rgba(255,255,255,.08);
+  display: flex;
+  padding: 0 64px;
+}
+.rnav-btn {
+  padding: 13px 20px;
+  background: none;
+  border: none;
+  color: rgba(255,255,255,.35);
+  font-family: 'Libre Franklin', sans-serif;
+  font-size: 10px;
+  font-weight: 400;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  transition: all .18s;
+}
+.rnav-btn:hover { color: rgba(255,255,255,.7); }
+.rnav-btn.active { color: #fff; border-bottom-color: #fff; }
+
+/* ── PANES ── */
+.pane { display: none; }
+.pane.active { display: block; }
+
+/* ── STAT STRIP ── */
+.stat-strip {
+  display: grid;
+  grid-template-columns: repeat(6,1fr);
+  border-bottom: 1px solid var(--rule);
+}
+.stat {
+  padding: 24px 28px;
+  border-right: 1px solid var(--rule);
+}
+.stat:last-child { border-right: none; }
+.stat-n {
+  font-family: 'Playfair Display', serif;
+  font-size: 30px;
+  font-weight: 400;
+  line-height: 1;
+}
+.stat-lbl {
+  font-size: 10px;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--mist);
+  margin-top: 4px;
+}
+.c-accent { color: var(--accent); }
+.c-green  { color: var(--green); }
+.c-amber  { color: var(--amber); }
+.c-rose   { color: var(--rose); }
+
+/* ── SECTION ── */
+section {
+  padding: 40px 64px;
+  border-bottom: 1px solid var(--rule);
+}
+.sec-head {
+  display: flex;
+  align-items: baseline;
+  gap: 16px;
+  margin-bottom: 6px;
+}
+.sec-head h2 {
+  font-family: 'Playfair Display', serif;
+  font-size: 24px;
+  font-weight: 400;
+}
+.sec-head .sec-tag {
+  font-size: 10px;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--mist);
+}
+.sec-sub {
+  font-size: 12px;
+  color: var(--mist);
+  margin-bottom: 28px;
+  max-width: 680px;
+}
+
+/* ── SITE CARDS ── */
+.card-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1px;
+  background: var(--rule);
+  border: 1px solid var(--rule);
+}
+.site-card {
+  background: var(--paper);
+  padding: 24px 26px;
+  cursor: pointer;
+  transition: background .15s;
+  position: relative;
+}
+.site-card:hover { background: var(--cream); }
+.site-card.active { background: var(--ink); color: #fff; }
+.site-card.active .sc-sub, .site-card.active .sc-type { color: rgba(255,255,255,.45); }
+.site-card.active .sc-notes { color: rgba(255,255,255,.6); }
+.sc-rank {
+  font-size: 10px;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--mist);
+  margin-bottom: 8px;
+}
+.site-card.active .sc-rank { color: rgba(255,255,255,.35); }
+.sc-name {
+  font-family: 'Playfair Display', serif;
+  font-size: 17px;
+  font-weight: 400;
+  line-height: 1.3;
+  margin-bottom: 3px;
+}
+.sc-sub { font-size: 11px; color: var(--mist); margin-bottom: 12px; }
+.sc-score-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+.sc-score-big {
+  font-family: 'Playfair Display', serif;
+  font-size: 28px;
+  font-weight: 400;
+  line-height: 1;
+}
+.sc-bars { flex: 1; display: flex; flex-direction: column; gap: 3px; }
+.sc-bar-row { display: flex; align-items: center; gap: 5px; }
+.sc-bar-lbl { font-size: 9px; letter-spacing: .06em; text-transform: uppercase; color: var(--mist); width: 22px; flex-shrink: 0; }
+.site-card.active .sc-bar-lbl { color: rgba(255,255,255,.35); }
+.sc-bar-bg { flex: 1; height: 3px; background: rgba(0,0,0,.08); border-radius: 2px; overflow: hidden; }
+.site-card.active .sc-bar-bg { background: rgba(255,255,255,.12); }
+.sc-bar-fill { height: 100%; border-radius: 2px; }
+.sc-badges { display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 10px; }
+.badge {
+  font-size: 9px;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  padding: 2px 7px;
+  border-radius: 1px;
+  font-weight: 500;
+}
+.b-lulu  { background: rgba(44,82,130,.12); color: var(--accent); }
+.b-apple { background: rgba(39,103,73,.12); color: var(--green); }
+.b-nords { background: rgba(155,35,53,.12); color: var(--rose); }
+.b-eq    { background: rgba(84,60,154,.12); color: #553c9a; }
+.b-wf    { background: rgba(180,83,9,.12);  color: var(--amber); }
+.site-card.active .b-lulu  { background: rgba(147,197,253,.2); color: #93c5fd; }
+.site-card.active .b-apple { background: rgba(110,231,183,.2); color: #6ee7b7; }
+.site-card.active .b-nords { background: rgba(252,165,165,.2); color: #fca5a5; }
+.site-card.active .b-eq    { background: rgba(196,181,253,.2); color: #c4b5fd; }
+.site-card.active .b-wf    { background: rgba(253,186,116,.2); color: #fbb46e; }
+.sc-notes {
+  font-size: 11px;
+  color: #666;
+  line-height: 1.65;
+  border-top: 1px solid var(--rule);
+  padding-top: 10px;
+  margin-top: 4px;
+}
+.site-card.active .sc-notes { border-color: rgba(255,255,255,.1); }
+.priority-pip {
+  position: absolute;
+  top: 0; left: 0;
+  width: 3px; height: 100%;
+}
+.p1  { background: var(--green); }
+.p2  { background: var(--accent); }
+.pm  { background: var(--mist); }
+.sc-occ {
+  font-size: 10px;
+  letter-spacing: .05em;
+  margin-top: 6px;
+}
+
+/* ── MARKET BREAKDOWN TABLE ── */
+.mkt-filter { display: flex; gap: 8px; margin-bottom: 20px; flex-wrap: wrap; }
+.mkt-btn {
+  padding: 5px 14px;
+  border: 1px solid var(--rule);
+  background: none;
+  font-family: 'Libre Franklin', sans-serif;
+  font-size: 10px;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all .15s;
+  color: var(--mist);
+}
+.mkt-btn:hover, .mkt-btn.active {
+  background: var(--ink);
+  color: #fff;
+  border-color: var(--ink);
+}
+.data-tbl { width: 100%; border-collapse: collapse; }
+.data-tbl thead tr { border-bottom: 2px solid var(--ink); }
+.data-tbl th {
+  padding: 9px 12px;
+  text-align: left;
+  font-size: 9px;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  font-weight: 500;
+  color: var(--mist);
+  white-space: nowrap;
+}
+.data-tbl tbody tr {
+  border-bottom: 1px solid var(--rule);
+  transition: background .12s;
+}
+.data-tbl tbody tr:hover { background: var(--cream); }
+.data-tbl td { padding: 11px 12px; font-size: 12px; vertical-align: middle; }
+.td-site { font-weight: 400; }
+.td-city { color: var(--mist); font-size: 11px; }
+.type-chip {
+  display: inline-block;
+  font-size: 9px;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  padding: 2px 6px;
+  border-radius: 1px;
+  font-weight: 400;
+}
+.tc-mall      { background: rgba(44,82,130,.1);  color: var(--accent); }
+.tc-lifestyle { background: rgba(39,103,73,.1);  color: var(--green); }
+.tc-street    { background: rgba(180,83,9,.1);   color: var(--amber); }
+.tc-luxury    { background: rgba(155,35,53,.1);  color: var(--rose); }
+.pri-tag {
+  font-size: 9px;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  font-weight: 500;
+  padding: 2px 8px;
+}
+.pri-p1 { color: var(--green); }
+.pri-p2 { color: var(--accent); }
+.pri-pm { color: var(--mist); }
+.pri-ko { color: var(--rose); }
+.score-num {
+  font-family: 'Playfair Display', serif;
+  font-size: 18px;
+  font-weight: 400;
+}
+.micro-bar { display: flex; gap: 2px; align-items: center; }
+.mb-seg { height: 8px; border-radius: 1px; }
+
+/* ── CHARTS ── */
+.chart-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 32px; }
+.cbox {
+  border: 1px solid var(--rule);
+  padding: 24px 28px;
+}
+.cbox h3 {
+  font-family: 'Playfair Display', serif;
+  font-size: 18px;
+  font-weight: 400;
+  margin-bottom: 4px;
+}
+.cbox .csub { font-size: 11px; color: var(--mist); margin-bottom: 18px; }
+
+/* ── FRAMEWORK ── */
+.fw-grid { display: grid; grid-template-columns: repeat(5,1fr); gap: 1px; background: var(--rule); border: 1px solid var(--rule); margin-bottom: 32px; }
+.fw-col { background: var(--paper); padding: 22px 20px; }
+.fw-col-head {
+  font-family: 'Playfair Display', serif;
+  font-size: 15px;
+  font-weight: 400;
+  margin-bottom: 6px;
+}
+.fw-weight {
+  font-size: 24px;
+  font-family: 'Playfair Display', serif;
+  font-weight: 600;
+  margin-bottom: 10px;
+  line-height: 1;
+}
+.fw-items { list-style: none; }
+.fw-items li {
+  font-size: 11px;
+  color: var(--mist);
+  padding: 4px 0;
+  border-bottom: 1px solid var(--rule);
+  line-height: 1.5;
+}
+.fw-items li:last-child { border-bottom: none; }
+
+/* ── RECOMMENDATION CARDS ── */
+.rec-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+.rec-card {
+  border: 1px solid var(--rule);
+  padding: 0;
+  overflow: hidden;
+}
+.rec-header {
+  padding: 18px 22px;
+  border-bottom: 1px solid var(--rule);
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+.rec-header-left h3 {
+  font-family: 'Playfair Display', serif;
+  font-size: 18px;
+  font-weight: 400;
+  line-height: 1.2;
+}
+.rec-header-left .rec-market {
+  font-size: 10px;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--mist);
+  margin-top: 3px;
+}
+.rec-score-badge {
+  font-family: 'Playfair Display', serif;
+  font-size: 26px;
+  font-weight: 400;
+  flex-shrink: 0;
+  line-height: 1;
+}
+.rec-body { padding: 18px 22px; }
+.rec-bullets { list-style: none; }
+.rec-bullets li {
+  font-size: 12px;
+  color: #444;
+  padding: 5px 0;
+  border-bottom: 1px solid var(--rule);
+  padding-left: 12px;
+  position: relative;
+  line-height: 1.6;
+}
+.rec-bullets li::before { content: '→'; position: absolute; left: 0; color: var(--mist); }
+.rec-bullets li:last-child { border-bottom: none; }
+.rec-footer {
+  padding: 12px 22px;
+  background: var(--cream);
+  font-size: 11px;
+  color: var(--mist);
+  display: flex;
+  justify-content: space-between;
+  border-top: 1px solid var(--rule);
+}
+
+/* ── SEQUENCING TIMELINE ── */
+.timeline { position: relative; padding-left: 28px; }
+.timeline::before {
+  content: '';
+  position: absolute;
+  left: 8px; top: 0; bottom: 0;
+  width: 1px;
+  background: var(--rule);
+}
+.tl-item { position: relative; margin-bottom: 28px; }
+.tl-dot {
+  position: absolute;
+  left: -24px; top: 4px;
+  width: 10px; height: 10px;
+  border-radius: 50%;
+  border: 2px solid var(--paper);
+}
+.tl-wave { font-size: 10px; letter-spacing: .14em; text-transform: uppercase; color: var(--mist); margin-bottom: 6px; }
+.tl-sites { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+.tl-site-chip {
+  font-size: 11px;
+  padding: 4px 12px;
+  border: 1px solid var(--rule);
+  background: var(--paper);
+  line-height: 1.4;
+}
+.tl-site-chip strong { font-weight: 500; display: block; font-size: 12px; }
+.tl-site-chip span { color: var(--mist); font-size: 10px; }
+
+footer {
+  background: var(--ink);
+  padding: 18px 64px;
+  font-size: 10px;
+  letter-spacing: .06em;
+  color: rgba(255,255,255,.3);
+  display: flex;
+  justify-content: space-between;
+}
+footer span { color: rgba(255,255,255,.6); }
+</style>
+</head>
+<body>
+
+<!-- MASTHEAD -->
+<!-- INTER-DASHBOARD NAVIGATION -->
+<div style="background:#0e0c0b;padding:10px 64px;display:flex;align-items:center;gap:24px;border-bottom:1px solid rgba(255,255,255,.06)">
+  <span style="font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:rgba(255,255,255,.25)">Part of:</span>
+  <a href="alo_site_analysis.html" style="font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:rgba(255,255,255,.4);text-decoration:none;font-family:'Libre Franklin',sans-serif">Tier 1 — Market Rankings</a>
+  <span style="color:rgba(255,255,255,.15)">·</span>
+  <a href="alo_reverse_engineering.html" style="font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:rgba(255,255,255,.4);text-decoration:none;font-family:'Libre Franklin',sans-serif">Validation &amp; Reverse Engineering</a>
+  <span style="color:rgba(255,255,255,.15)">·</span>
+  <a href="alo_tier2_analysis.html" style="font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:#c9a96e;text-decoration:none;font-family:'Libre Franklin',sans-serif">Tier 2 — Site Analysis</a>
+</div>
+<header class="masthead">
+  <div class="masthead-eyebrow">Alo Yoga · Site Selection Intelligence</div>
+  <h1>Tier 2 <em>Site-Level Analysis</em></h1>
+  <div class="masthead-meta">
+    5 Priority Gap Markets &nbsp;·&nbsp; 21 Candidate Sites &nbsp;·&nbsp; 5-Dimension Scoring Framework &nbsp;·&nbsp; Q1 2025
+  </div>
+</header>
+
+<nav class="rule-nav">
+  <button class="rnav-btn active" onclick="showPane('sites',this)">Site Scores</button>
+  <button class="rnav-btn" onclick="showPane('matrix',this)">Comparison Matrix</button>
+  <button class="rnav-btn" onclick="showPane('recs',this)">Recommendations</button>
+  <button class="rnav-btn" onclick="showPane('framework',this)">Framework</button>
+</nav>
+
+<!-- ══════════ PANE 1 · SITE SCORES ══════════ -->
+<div class="pane active" id="pane-sites">
+
+  <div class="stat-strip">
+    <div class="stat"><div class="stat-n c-accent">21</div><div class="stat-lbl">Sites Evaluated</div></div>
+    <div class="stat"><div class="stat-n c-green">6</div><div class="stat-lbl">Priority 1 Sites</div></div>
+    <div class="stat"><div class="stat-n">11</div><div class="stat-lbl">Priority 2 Sites</div></div>
+    <div class="stat"><div class="stat-n c-amber">9.15</div><div class="stat-lbl">Top Site Score</div></div>
+    <div class="stat"><div class="stat-n c-green">&lt;10%</div><div class="stat-lbl">Occ Cost (all sites)</div></div>
+    <div class="stat"><div class="stat-n c-rose">0</div><div class="stat-lbl">Economic Knockouts</div></div>
+  </div>
+
+  <section>
+    <div class="sec-head">
+      <h2>All 21 Candidate Sites</h2>
+      <span class="sec-tag">Ranked by composite score</span>
+    </div>
+    <div class="sec-sub">Five-factor weighted scoring: Venue Quality (25%) · Trade Area Demographics (25%) · Co-Tenancy (25%) · Accessibility (15%) · Real Estate Economics (10%). Green sidebar = Priority 1, blue = Priority 2, grey = Monitor.</div>
+    <div class="card-grid" id="card-grid"></div>
+  </section>
+</div>
+
+<!-- ══════════ PANE 2 · MATRIX ══════════ -->
+<div class="pane" id="pane-matrix">
+  <section>
+    <div class="sec-head">
+      <h2>Market Comparison</h2>
+      <span class="sec-tag">Filter by market</span>
+    </div>
+    <div class="sec-sub">Full site-level breakdown across all five scoring dimensions with real estate economics and co-tenancy flags.</div>
+    <div class="mkt-filter" id="mkt-filter"></div>
+    <table class="data-tbl">
+      <thead>
+        <tr>
+          <th>#</th><th>Site</th><th>Type</th><th>Score</th>
+          <th>Venue</th><th>Trade Area</th><th>Co-Ten.</th><th>Access</th><th>RE Econ</th>
+          <th>Lulu</th><th>Apple</th><th>Occ%</th><th>Priority</th>
+        </tr>
+      </thead>
+      <tbody id="matrix-body"></tbody>
+    </table>
+  </section>
+  <section>
+    <div class="chart-grid">
+      <div class="cbox">
+        <h3>Score vs. Occupancy Cost</h3>
+        <div class="csub">Ideal sites: upper-left (high score, low occupancy cost). All sites well within the 18% industry threshold.</div>
+        <canvas id="scatterChart" height="300"></canvas>
+      </div>
+      <div class="cbox">
+        <h3>Score Breakdown by Market</h3>
+        <div class="csub">Average site scores across five dimensions per market — revealing each market's relative strengths.</div>
+        <canvas id="radarChart" height="300"></canvas>
+      </div>
+    </div>
+  </section>
+</div>
+
+<!-- ══════════ PANE 3 · RECOMMENDATIONS ══════════ -->
+<div class="pane" id="pane-recs">
+  <section>
+    <div class="sec-head">
+      <h2>Site Recommendations</h2>
+      <span class="sec-tag">Top 6 Priority 1 sites</span>
+    </div>
+    <div class="sec-sub">Each recommendation summarizes the case for opening, key risks, and optimal sequencing. All Priority 1 sites cleared economic and co-tenancy thresholds.</div>
+    <div class="rec-grid" id="rec-grid"></div>
+  </section>
+  <section>
+    <div class="sec-head">
+      <h2>Suggested Opening Sequence</h2>
+      <span class="sec-tag">3-wave rollout · 18 months</span>
+    </div>
+    <div class="sec-sub">Ordered by a combination of site score, market gap size (Tier 1), and cluster-building logic observed in Alo's existing expansion pattern.</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:40px">
+      <div class="timeline" id="timeline"></div>
+      <div class="cbox" style="align-self:start">
+        <h3>Sequencing Rationale</h3>
+        <div class="csub">Why this order</div>
+        <ul style="list-style:none">
+          <li style="padding:8px 0;border-bottom:1px solid var(--rule);font-size:12px;color:#444;line-height:1.7">
+            <strong style="font-weight:500;display:block">Wave 1 — Market Entry</strong>
+            Seattle and San Diego are the highest-score, zero-or-one-store markets where the cluster-building opportunity is greatest. University Village and UTC are best-in-class venues that establish the brand before cluster expansion.
+          </li>
+          <li style="padding:8px 0;border-bottom:1px solid var(--rule);font-size:12px;color:#444;line-height:1.7">
+            <strong style="font-weight:500;display:block">Wave 2 — Cluster Building</strong>
+            Highland Park Village gives Dallas the prestige anchor it lacks, while Domain NORTHSIDE deepens Austin's cluster in the same lifestyle center family as the existing location.
+          </li>
+          <li style="padding:8px 0;font-size:12px;color:#444;line-height:1.7">
+            <strong style="font-weight:500;display:block">Wave 3 — Fill & Scale</strong>
+            Bellevue Square gives Seattle a second node for volume, while Legacy West rounds out DFW with tech-corridor demographics. Southpoint in Raleigh-Durham closes the Triangle's best mall gap.
+          </li>
+        </ul>
+      </div>
+    </div>
+  </section>
+</div>
+
+<!-- ══════════ PANE 4 · FRAMEWORK ══════════ -->
+<div class="pane" id="pane-framework">
+  <section>
+    <div class="sec-head">
+      <h2>Tier 2 Scoring Framework</h2>
+      <span class="sec-tag">Site-level methodology</span>
+    </div>
+    <div class="sec-sub">Unlike Tier 1 (metro-level opportunity), Tier 2 evaluates specific retail venues on five dimensions. Each dimension is independently scored 0–10 and combined using the weights below.</div>
+    <div class="fw-grid">
+      <div class="fw-col" style="border-top:3px solid var(--col1)">
+        <div class="fw-col-head">Venue Quality</div>
+        <div class="fw-weight" style="color:var(--col1)">25%</div>
+        <ul class="fw-items">
+          <li>National sales/sqft ranking</li>
+          <li>Anchor tenant caliber (Nordstrom / Neiman / Saks)</li>
+          <li>Physical condition & recent capex</li>
+          <li>Vacancy rate (&lt;5% = 10, &gt;15% = 2)</li>
+          <li>Center ownership (Simon / Westfield = premium)</li>
+        </ul>
+      </div>
+      <div class="fw-col" style="border-top:3px solid var(--col2)">
+        <div class="fw-col-head">Trade Area Demographics</div>
+        <div class="fw-weight" style="color:var(--col2)">25%</div>
+        <ul class="fw-items">
+          <li>% HH income $150K+ within 5mi</li>
+          <li>Median age 28–42 (target cohort)</li>
+          <li>Daytime population density</li>
+          <li>% college-educated within 5mi</li>
+          <li>Nearby employer base (tech / finance / biotech)</li>
+        </ul>
+      </div>
+      <div class="fw-col" style="border-top:3px solid var(--col3)">
+        <div class="fw-col-head">Co-Tenancy</div>
+        <div class="fw-weight" style="color:var(--col3)">25%</div>
+        <ul class="fw-items">
+          <li>Lululemon same venue (strongest signal)</li>
+          <li>Apple Store presence</li>
+          <li>Anthropologie / Free People / Aritzia</li>
+          <li>Luxury anchors (Nordstrom, Neiman, RH)</li>
+          <li>Equinox / boutique fitness within 0.25mi</li>
+          <li>Whole Foods within 0.5mi</li>
+        </ul>
+      </div>
+      <div class="fw-col" style="border-top:3px solid var(--col4)">
+        <div class="fw-col-head">Accessibility</div>
+        <div class="fw-weight" style="color:var(--col4)">15%</div>
+        <ul class="fw-items">
+          <li>Parking abundance & convenience</li>
+          <li>Highway proximity / interchange</li>
+          <li>Transit score (for urban sites)</li>
+          <li>In-venue positioning (end-cap premium)</li>
+          <li>Ride-share / pedestrian access</li>
+        </ul>
+      </div>
+      <div class="fw-col" style="border-top:3px solid var(--col5)">
+        <div class="fw-col-head">Real Estate Economics</div>
+        <div class="fw-weight" style="color:var(--col5)">10%</div>
+        <ul class="fw-items">
+          <li>Est. rent $/sqft vs. category avg</li>
+          <li>Occupancy cost % (target &lt;18%)</li>
+          <li>Knockout: occ cost &gt;22%</li>
+          <li>Lease term flexibility</li>
+          <li>CAM / NNN load estimate</li>
+        </ul>
+      </div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:28px;margin-top:8px">
+      <div class="cbox">
+        <h3>Revenue Benchmarks Used</h3>
+        <div class="csub">$/sqft assumptions by venue tier (Alo-comparable athleisure peer data)</div>
+        <table class="data-tbl">
+          <thead><tr><th>Venue Tier</th><th>Rev $/sqft</th><th>Example</th></tr></thead>
+          <tbody>
+            <tr><td>Luxury Destination</td><td class="score-num">$2,000</td><td style="color:var(--mist);font-size:11px">Highland Park Village, Bal Harbour</td></tr>
+            <tr><td>Lifestyle — Premium</td><td class="score-num">$1,600</td><td style="color:var(--mist);font-size:11px">University Village, Domain, Legacy West</td></tr>
+            <tr><td>Mall — Top 25 National</td><td class="score-num">$1,500</td><td style="color:var(--mist);font-size:11px">UTC, Bellevue Square, NorthPark</td></tr>
+            <tr><td>Street Flagship</td><td class="score-num">$1,300</td><td style="color:var(--mist);font-size:11px">SoCo Austin, La Jolla Prospect</td></tr>
+            <tr><td>Lifestyle — Standard</td><td class="score-num">$1,100</td><td style="color:var(--mist);font-size:11px">Cameron Village, Hill Country</td></tr>
+            <tr><td>Mall — Class A</td><td class="score-num">$1,050</td><td style="color:var(--mist);font-size:11px">Southpoint, Triangle TC</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="cbox">
+        <h3>Knockout Rules</h3>
+        <div class="csub">Automatic disqualification criteria applied before scoring is considered</div>
+        <ul class="fw-items" style="border:none">
+          <li style="border-bottom:1px solid var(--rule);padding:8px 0;font-size:12px">⛔ Occupancy cost &gt;22% of projected revenue</li>
+          <li style="border-bottom:1px solid var(--rule);padding:8px 0;font-size:12px">⛔ Venue vacancy rate &gt;15% (declining center)</li>
+          <li style="border-bottom:1px solid var(--rule);padding:8px 0;font-size:12px">⛔ No Lululemon within 1mi (unless flagship-street rationale)</li>
+          <li style="border-bottom:1px solid var(--rule);padding:8px 0;font-size:12px">⛔ 5-mi radius median HH income &lt;$90K</li>
+          <li style="padding:8px 0;font-size:12px">⛔ Direct Alo-within-2mi (saturation overlap)</li>
+        </ul>
+        <div style="margin-top:16px;padding:12px 14px;background:rgba(39,103,73,.06);border:1px solid rgba(39,103,73,.2);font-size:11px;color:#444;line-height:1.7">
+          <strong style="font-weight:500;display:block;margin-bottom:4px;color:var(--green)">Result: 0 knockouts across all 21 sites.</strong>
+          All candidates in these five gap markets cleared every threshold. The Tier 1 screening process effectively pre-filtered for favorable real estate economics — premium demographics support premium rents.
+        </div>
+      </div>
+    </div>
+  </section>
+  <section>
+    <div class="sec-head"><h2>How Tier 2 Connects to Tier 1</h2></div>
+    <div class="sec-sub">The two-tier structure prevents the most common site-selection error: selecting the right metro but the wrong venue, or vice versa.</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:1px;background:var(--rule);border:1px solid var(--rule)">
+      <div style="background:var(--paper);padding:24px">
+        <div style="font-family:'Playfair Display',serif;font-size:18px;margin-bottom:8px">Tier 1 — Metro</div>
+        <div style="font-size:11px;color:var(--mist);margin-bottom:12px">Which cities should Alo be in?</div>
+        <ul style="list-style:none;font-size:12px;color:#444">
+          <li style="padding:5px 0;border-bottom:1px solid var(--rule)">39 MSA evaluation</li>
+          <li style="padding:5px 0;border-bottom:1px solid var(--rule)">Wealth, lifestyle, competitive, dynamics, tourism</li>
+          <li style="padding:5px 0">Identifies Seattle, Austin, SD, DFW, Raleigh as gaps</li>
+        </ul>
+      </div>
+      <div style="background:var(--cream);padding:24px;display:flex;align-items:center;justify-content:center;font-size:32px;color:var(--mist)">→</div>
+      <div style="background:var(--paper);padding:24px">
+        <div style="font-family:'Playfair Display',serif;font-size:18px;margin-bottom:8px">Tier 2 — Site</div>
+        <div style="font-size:11px;color:var(--mist);margin-bottom:12px">Which specific venues within those cities?</div>
+        <ul style="list-style:none;font-size:12px;color:#444">
+          <li style="padding:5px 0;border-bottom:1px solid var(--rule)">21 candidate sites across 5 markets</li>
+          <li style="padding:5px 0;border-bottom:1px solid var(--rule)">Venue quality, trade area, co-tenancy, access, RE</li>
+          <li style="padding:5px 0">Outputs ranked site list + opening sequence</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+</div>
+
+<footer>
+  <div>Alo Tier 2 Site Analysis · <span>21 Sites · 5 Gap Markets</span></div>
+  <div>Internal Strategy Use Only · Data: Placer.ai, CoStar, ICSC, Esri 5-mi ring demographics</div>
+</footer>
+
+<script>
+const SITES = [{"market":"San Diego","site":"Westfield UTC","city":"La Jolla","state":"CA","type":"mall","rev_tier":"mall_top10","venue_quality":9.5,"trade_area":9.5,"cotenancy":9.5,"accessibility":8.5,"re_econ":7.5,"lululemon":true,"apple":true,"nordstrom":true,"equinox":true,"whole_foods":true,"est_rent_psf":108,"est_sqft":2600,"tier1_score":5.69,"existing_alo":1,"notes":"San Diego's premier mall. Adjacent to UCSD, Torrey Pines, La Jolla. 5-mi: 38% HH $150K+. Nordstrom, Apple, Equinox, Whole Foods, lululemon, Anthropologie. Most compelling SD expansion site by wide margin.","score":9.15,"est_rev":3900000,"est_rent":280800,"occ_pct":7.2,"ko":false,"priority":"PRIORITY 1"},{"market":"Austin-Round Rock","site":"Domain NORTHSIDE","city":"Austin","state":"TX","type":"lifestyle","rev_tier":"lifestyle_premium","venue_quality":9.5,"trade_area":9.0,"cotenancy":9.5,"accessibility":8.5,"re_econ":7.5,"lululemon":true,"apple":true,"nordstrom":false,"equinox":false,"whole_foods":true,"est_rent_psf":100,"est_sqft":2600,"tier1_score":6.02,"existing_alo":1,"notes":"Premium expansion of The Domain \u2014 Alo's existing Austin location. Apple, lululemon, Free People, Kendra Scott. Amazon/Indeed/Meta campuses within 1mi. Natural cluster-building play.","score":9.03,"est_rev":4160000,"est_rent":260000,"occ_pct":6.2,"ko":false,"priority":"PRIORITY 1"},{"market":"Dallas-Fort Worth","site":"Highland Park Village","city":"Highland Park","state":"TX","type":"lifestyle","rev_tier":"luxury","venue_quality":10.0,"trade_area":10.0,"cotenancy":9.0,"accessibility":7.5,"re_econ":6.0,"lululemon":true,"apple":false,"nordstrom":false,"equinox":true,"whole_foods":false,"est_rent_psf":140,"est_sqft":2200,"tier1_score":5.31,"existing_alo":1,"notes":"America's oldest shopping center. Park Cities zip codes: $300K+ median HH income. lululemon, Herm\u00e8s, Chanel nearby. Equinox. Alo's precise customer. Premium rent but commensurate revenue potential.","score":8.97,"est_rev":4400000,"est_rent":308000,"occ_pct":7.0,"ko":false,"priority":"PRIORITY 1"},{"market":"Seattle-Tacoma","site":"University Village","city":"Seattle","state":"WA","type":"lifestyle","rev_tier":"lifestyle_premium","venue_quality":9.5,"trade_area":9.0,"cotenancy":9.0,"accessibility":7.5,"re_econ":8.0,"lululemon":true,"apple":true,"nordstrom":false,"equinox":false,"whole_foods":false,"est_rent_psf":95,"est_sqft":2400,"tier1_score":6.1,"existing_alo":0,"notes":"Open-air lifestyle adjacent to UW. REI, Patagonia, Free People, lululemon, Apple. Dense tech/grad-student wealth. Outdoor-wellness positioning perfect for Alo's brand DNA.","score":8.8,"est_rev":3840000,"est_rent":228000,"occ_pct":5.9,"ko":false,"priority":"PRIORITY 1"},{"market":"Dallas-Fort Worth","site":"Legacy West","city":"Plano","state":"TX","type":"lifestyle","rev_tier":"lifestyle_premium","venue_quality":9.0,"trade_area":8.5,"cotenancy":9.0,"accessibility":9.0,"re_econ":8.0,"lululemon":true,"apple":true,"nordstrom":false,"equinox":false,"whole_foods":true,"est_rent_psf":95,"est_sqft":2600,"tier1_score":5.31,"existing_alo":1,"notes":"Premium north Dallas tech corridor (Toyota HQ, JPMorgan, Liberty Mutual). High-income YP demographics. lululemon, Apple, Whole Foods, REI. Best DFW expansion after Highland Park \u2014 strong volume + demographics.","score":8.78,"est_rev":4160000,"est_rent":247000,"occ_pct":5.9,"ko":false,"priority":"PRIORITY 1"},{"market":"Seattle-Tacoma","site":"Westfield Bellevue Square","city":"Bellevue","state":"WA","type":"mall","rev_tier":"mall_top10","venue_quality":9.0,"trade_area":8.5,"cotenancy":9.5,"accessibility":8.0,"re_econ":7.5,"lululemon":true,"apple":true,"nordstrom":true,"equinox":false,"whole_foods":true,"est_rent_psf":110,"est_sqft":2800,"tier1_score":6.1,"existing_alo":0,"notes":"Bellevue's #1 mall. Nordstrom, Neiman Marcus, Apple. Lululemon same center. 5-mi radius: 42% HH $150K+. Most obvious Seattle entry \u2014 premium positioning + volume.","score":8.7,"est_rev":4200000,"est_rent":308000,"occ_pct":7.3,"ko":false,"priority":"PRIORITY 1"},{"market":"Raleigh-Durham","site":"Southpoint Mall","city":"Durham","state":"NC","type":"mall","rev_tier":"mall_a","venue_quality":8.5,"trade_area":8.5,"cotenancy":8.5,"accessibility":8.5,"re_econ":8.0,"lululemon":true,"apple":true,"nordstrom":true,"equinox":false,"whole_foods":true,"est_rent_psf":72,"est_sqft":2600,"tier1_score":4.84,"existing_alo":1,"notes":"Premier Triangle mall. Serves Durham, Chapel Hill, RTP corridor (GSK, IQVIA, Cisco). Nordstrom, Apple, lululemon, Whole Foods. Best expansion site in the market \u2014 strong demographics + favorable rent.","score":8.45,"est_rev":2730000,"est_rent":187200,"occ_pct":6.9,"ko":false,"priority":"Priority 2"},{"market":"San Diego","site":"Del Mar Highlands Town Center","city":"Del Mar","state":"CA","type":"lifestyle","rev_tier":"lifestyle_premium","venue_quality":8.5,"trade_area":9.0,"cotenancy":8.0,"accessibility":7.5,"re_econ":8.5,"lululemon":true,"apple":false,"nordstrom":false,"equinox":true,"whole_foods":true,"est_rent_psf":82,"est_sqft":2200,"tier1_score":5.69,"existing_alo":1,"notes":"North SD coastal lifestyle center. Del Mar/Carmel Valley zip codes \u2014 top-5 wealthiest in county. lululemon, Equinox, Whole Foods. Beach-town wellness positioning aligns with Alo perfectly.","score":8.35,"est_rev":3520000,"est_rent":180400,"occ_pct":5.1,"ko":false,"priority":"Priority 2"},{"market":"Dallas-Fort Worth","site":"Willow Bend Mall","city":"Plano","state":"TX","type":"mall","rev_tier":"mall_a","venue_quality":8.5,"trade_area":8.0,"cotenancy":8.5,"accessibility":8.5,"re_econ":8.0,"lululemon":true,"apple":true,"nordstrom":true,"equinox":false,"whole_foods":false,"est_rent_psf":88,"est_sqft":2800,"tier1_score":5.31,"existing_alo":1,"notes":"Upscale Plano enclosed mall. Nordstrom anchor, lululemon, Apple. Affluent Plano/Frisco corridor. Solid volume play \u2014 third DFW location.","score":8.33,"est_rev":2940000,"est_rent":246400,"occ_pct":8.4,"ko":false,"priority":"Priority 2"},{"market":"Dallas-Fort Worth","site":"Galleria Dallas","city":"Dallas","state":"TX","type":"mall","rev_tier":"mall_a","venue_quality":8.0,"trade_area":7.5,"cotenancy":8.5,"accessibility":8.5,"re_econ":7.5,"lululemon":true,"apple":true,"nordstrom":true,"equinox":false,"whole_foods":false,"est_rent_psf":92,"est_sqft":2800,"tier1_score":5.31,"existing_alo":1,"notes":"Iconic Dallas mall. Strong co-tenancy. More tourist/mixed traffic. Solid option but lower demographic precision than Highland Park or Legacy West.","score":8.03,"est_rev":2940000,"est_rent":257600,"occ_pct":8.8,"ko":false,"priority":"Priority 2"},{"market":"Raleigh-Durham","site":"Cameron Village / Seaboard Station","city":"Raleigh","state":"NC","type":"lifestyle","rev_tier":"lifestyle_standard","venue_quality":8.0,"trade_area":8.5,"cotenancy":7.5,"accessibility":7.5,"re_econ":8.5,"lululemon":true,"apple":false,"nordstrom":false,"equinox":false,"whole_foods":true,"est_rent_psf":68,"est_sqft":2200,"tier1_score":4.84,"existing_alo":1,"notes":"Walkable urban retail near NC State and downtown Raleigh. lululemon, Whole Foods, dense boutique fitness. Wealthier residential catchment. Fastest-growing luxury retail corridor in the market.","score":7.97,"est_rev":2420000,"est_rent":149600,"occ_pct":6.2,"ko":false,"priority":"Priority 2"},{"market":"Austin-Round Rock","site":"Hill Country Galleria","city":"Bee Cave","state":"TX","type":"lifestyle","rev_tier":"lifestyle_standard","venue_quality":8.0,"trade_area":8.5,"cotenancy":7.5,"accessibility":7.0,"re_econ":8.5,"lululemon":true,"apple":false,"nordstrom":false,"equinox":true,"whole_foods":true,"est_rent_psf":78,"est_sqft":2400,"tier1_score":6.02,"existing_alo":1,"notes":"Serves Westlake Hills / Bee Cave corridor \u2014 median HH income $250K+. lululemon, Equinox, Whole Foods. Strong wellness lifestyle co-tenancy. Highest wealth concentration in Austin metro.","score":7.9,"est_rev":2640000,"est_rent":187200,"occ_pct":7.1,"ko":false,"priority":"Priority 2"},{"market":"Seattle-Tacoma","site":"Pacific Place","city":"Seattle (Downtown)","state":"WA","type":"street","rev_tier":"street_flagship","venue_quality":7.5,"trade_area":8.0,"cotenancy":7.5,"accessibility":9.5,"re_econ":7.0,"lululemon":true,"apple":false,"nordstrom":true,"equinox":false,"whole_foods":false,"est_rent_psf":85,"est_sqft":2200,"tier1_score":6.1,"existing_alo":0,"notes":"Downtown urban flagship opportunity. Nordstrom nearby on Pine St. High transit access. Softer co-tenancy than Bellevue but brand-statement value for Seattle's tech workforce.","score":7.88,"est_rev":2860000,"est_rent":187000,"occ_pct":6.5,"ko":false,"priority":"Priority 2"},{"market":"Austin-Round Rock","site":"Barton Creek Square","city":"Austin","state":"TX","type":"mall","rev_tier":"mall_a","venue_quality":7.5,"trade_area":7.5,"cotenancy":8.0,"accessibility":8.5,"re_econ":8.0,"lululemon":true,"apple":true,"nordstrom":true,"equinox":false,"whole_foods":false,"est_rent_psf":85,"est_sqft":2600,"tier1_score":6.02,"existing_alo":1,"notes":"Central-west Austin. Nordstrom anchor, Apple, lululemon. Solid co-tenancy. Enclosed format slightly less on-brand than lifestyle. Volume play for mid-market Austin.","score":7.83,"est_rev":2730000,"est_rent":221000,"occ_pct":8.1,"ko":false,"priority":"Priority 2"},{"market":"Austin-Round Rock","site":"South Congress Ave","city":"Austin","state":"TX","type":"street","rev_tier":"street_flagship","venue_quality":8.5,"trade_area":8.0,"cotenancy":7.0,"accessibility":6.5,"re_econ":7.5,"lululemon":false,"apple":false,"nordstrom":false,"equinox":false,"whole_foods":false,"est_rent_psf":80,"est_sqft":1800,"tier1_score":6.02,"existing_alo":1,"notes":"Austin's iconic boutique street. Brand-statement opportunity serving the cultural/creative-class customer. High walk score, no Lululemon yet. Analogous to Alo's Georgetown DC play \u2014 lifestyle credibility over pure volume.","score":7.6,"est_rev":2340000,"est_rent":144000,"occ_pct":6.2,"ko":false,"priority":"Priority 2"},{"market":"San Diego","site":"La Jolla Village / Prospect St","city":"La Jolla","state":"CA","type":"street","rev_tier":"street_flagship","venue_quality":8.0,"trade_area":9.5,"cotenancy":6.5,"accessibility":6.0,"re_econ":7.0,"lululemon":false,"apple":false,"nordstrom":false,"equinox":false,"whole_foods":false,"est_rent_psf":85,"est_sqft":1800,"tier1_score":5.69,"existing_alo":1,"notes":"Ultra-high-wealth street retail. La Jolla's outdoor dining village \u2014 one of SD's wealthiest zip codes ($300K+ median HH). Limited parking. Pure brand-statement / prestige play.","score":7.6,"est_rev":2340000,"est_rent":153000,"occ_pct":6.5,"ko":false,"priority":"Priority 2"},{"market":"San Diego","site":"Westfield Mission Valley","city":"Mission Valley","state":"CA","type":"mall","rev_tier":"mall_a","venue_quality":7.0,"trade_area":7.0,"cotenancy":7.5,"accessibility":9.0,"re_econ":8.5,"lululemon":true,"apple":true,"nordstrom":false,"equinox":false,"whole_foods":false,"est_rent_psf":72,"est_sqft":2600,"tier1_score":5.69,"existing_alo":1,"notes":"Central SD hub. I-8 / I-15 interchange \u2014 best accessibility in market. More mass-market demographics. Volume play, lower brand prestige vs. UTC.","score":7.57,"est_rev":2730000,"est_rent":187200,"occ_pct":6.9,"ko":false,"priority":"Priority 2"},{"market":"Raleigh-Durham","site":"Triangle Town Center","city":"Raleigh","state":"NC","type":"mall","rev_tier":"mall_a","venue_quality":7.0,"trade_area":7.0,"cotenancy":7.0,"accessibility":9.0,"re_econ":9.0,"lululemon":true,"apple":true,"nordstrom":false,"equinox":false,"whole_foods":false,"est_rent_psf":58,"est_sqft":2800,"tier1_score":4.84,"existing_alo":1,"notes":"North Raleigh enclosed mall. lululemon, Apple. Best accessibility in market. More mass-market demographic mix but high traffic. Very favorable economics \u2014 occupancy cost well within target.","score":7.5,"est_rev":2940000,"est_rent":162400,"occ_pct":5.5,"ko":false,"priority":"Priority 2"},{"market":"Raleigh-Durham","site":"Brier Creek Commons","city":"Raleigh","state":"NC","type":"lifestyle","rev_tier":"lifestyle_standard","venue_quality":7.0,"trade_area":7.5,"cotenancy":6.5,"accessibility":8.5,"re_econ":9.0,"lululemon":false,"apple":false,"nordstrom":false,"equinox":false,"whole_foods":true,"est_rent_psf":52,"est_sqft":2400,"tier1_score":4.84,"existing_alo":1,"notes":"NW Raleigh near RTP. Younger growing demographics. No lululemon or Apple \u2014 weaker co-tenancy signal. Best rent economics in market but least brand-aligned option.","score":7.43,"est_rev":2640000,"est_rent":124800,"occ_pct":4.7,"ko":false,"priority":"Monitor"},{"market":"Seattle-Tacoma","site":"Alderwood Mall","city":"Lynnwood","state":"WA","type":"mall","rev_tier":"mall_a","venue_quality":7.0,"trade_area":6.5,"cotenancy":7.0,"accessibility":8.0,"re_econ":8.5,"lululemon":true,"apple":true,"nordstrom":true,"equinox":false,"whole_foods":false,"est_rent_psf":70,"est_sqft":2600,"tier1_score":6.1,"existing_alo":0,"notes":"Solid Class A north-of-Seattle. Good co-tenancy, favorable rent. Lower wealth concentration vs. Bellevue. Volume play \u2014 3rd or 4th Seattle location, not entry.","score":7.18,"est_rev":2730000,"est_rent":182000,"occ_pct":6.7,"ko":false,"priority":"Monitor"},{"market":"Seattle-Tacoma","site":"Southcenter Mall","city":"Tukwila","state":"WA","type":"mall","rev_tier":"mall_a","venue_quality":6.5,"trade_area":5.5,"cotenancy":6.0,"accessibility":8.5,"re_econ":9.0,"lululemon":true,"apple":true,"nordstrom":false,"equinox":false,"whole_foods":false,"est_rent_psf":62,"est_sqft":2600,"tier1_score":6.1,"existing_alo":0,"notes":"South-Seattle suburban mall. Lower income demographics. Favorable economics but not aligned with premium Alo positioning. Operational efficiency play only.","score":6.68,"est_rev":2730000,"est_rent":161200,"occ_pct":5.9,"ko":false,"priority":"Monitor"}]
+;
+
+const COLORS = {
+  venue:'#2c5282', trade:'#276749', cotenancy:'#744210',
+  access:'#553c9a', re:'#9b2335'
+};
+const MARKETS = ['Seattle-Tacoma','Austin-Round Rock','San Diego','Dallas-Fort Worth','Raleigh-Durham'];
+const MKTSHORT = {'Seattle-Tacoma':'Seattle','Austin-Round Rock':'Austin',
+  'San Diego':'San Diego','Dallas-Fort Worth':'Dallas','Raleigh-Durham':'Raleigh-Durham'};
+
+function sColor(s){ return s>=9?'#276749':s>=8?'#2c5282':s>=7?'#744210':'#718096'; }
+function pipClass(p){ return p==='PRIORITY 1'?'p1':p==='Priority 2'?'p2':'pm'; }
+function typeClass(t){ return 'tc-'+t.replace('_','-'); }
+function priClass(p){ return p==='PRIORITY 1'?'pri-p1':p==='Priority 2'?'pri-p2':'pri-pm'; }
+
+// ── TAB SWITCHING ──
+function showPane(id,btn){
+  document.querySelectorAll('.pane').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.rnav-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('pane-'+id).classList.add('active');
+  btn.classList.add('active');
+  if(id==='matrix') buildCharts();
+}
+
+// ── SITE CARDS ──
+function buildCards(){
+  const grid = document.getElementById('card-grid');
+  grid.innerHTML = SITES.map((s,i)=>{
+    const scoreColor = sColor(s.score);
+    const dims = [
+      {k:'venue_quality',c:COLORS.venue,l:'Ven'},
+      {k:'trade_area',c:COLORS.trade,l:'Tra'},
+      {k:'cotenancy',c:COLORS.cotenancy,l:'CoT'},
+      {k:'accessibility',c:COLORS.access,l:'Acc'},
+      {k:'re_econ',c:COLORS.re,l:'RE'},
+    ];
+    const bars = dims.map(d=>`
+      <div class="sc-bar-row">
+        <span class="sc-bar-lbl">${d.l}</span>
+        <div class="sc-bar-bg">
+          <div class="sc-bar-fill" style="width:${s[d.k]*10}%;background:${d.c}"></div>
+        </div>
+        <span style="font-size:9px;color:#aaa;min-width:20px">${s[d.k].toFixed(1)}</span>
+      </div>`).join('');
+
+    const badges = [];
+    if(s.lululemon) badges.push('<span class="badge b-lulu">Lululemon</span>');
+    if(s.apple)     badges.push('<span class="badge b-apple">Apple</span>');
+    if(s.nordstrom) badges.push('<span class="badge b-nords">Nordstrom</span>');
+    if(s.equinox)   badges.push('<span class="badge b-eq">Equinox</span>');
+    if(s.whole_foods)badges.push('<span class="badge b-wf">Whole Foods</span>');
+
+    return `<div class="site-card" onclick="toggleCard(this,${i})">
+      <div class="priority-pip ${pipClass(s.priority)}"></div>
+      <div class="sc-rank">${String(i+1).padStart(2,'0')} · ${MKTSHORT[s.market]}</div>
+      <div class="sc-name">${s.site}</div>
+      <div class="sc-sub">${s.city}, ${s.state} · <span class="type-chip ${typeClass(s.type)}">${s.type}</span></div>
+      <div class="sc-score-row">
+        <div class="sc-score-big" style="color:${scoreColor}">${s.score.toFixed(2)}</div>
+        <div class="sc-bars">${bars}</div>
+      </div>
+      <div class="sc-badges">${badges.join('')}</div>
+      <div class="sc-occ" style="color:${s.occ_pct>15?'#9b2335':s.occ_pct>10?'#744210':'#276749'}">
+        Occ. Cost: ${s.occ_pct}% &nbsp;·&nbsp; $${s.est_rent_psf}/sqft &nbsp;·&nbsp; ${s.est_sqft.toLocaleString()} sqft est.
+      </div>
+      <div class="sc-notes">${s.notes}</div>
+    </div>`;
+  }).join('');
+}
+
+function toggleCard(el,i){
+  document.querySelectorAll('.site-card').forEach(c=>c.classList.remove('active'));
+  el.classList.add('active');
+}
+
+// ── MATRIX TABLE ──
+let activeMarket = 'All';
+function buildMatrix(mkt){
+  activeMarket = mkt || activeMarket;
+  const rows = SITES.filter(s=> activeMarket==='All' || s.market===activeMarket);
+  const body = document.getElementById('matrix-body');
+  body.innerHTML = rows.map((s,i)=>{
+    const check = v => v ? '<span style="color:var(--green);font-size:14px">✓</span>' : '<span style="color:#ddd">–</span>';
+    const w = [.25,.25,.25,.15,.10];
+    const vs = [s.venue_quality,s.trade_area,s.cotenancy,s.accessibility,s.re_econ];
+    const segs = vs.map((v,j)=>`<div class="mb-seg" style="width:${v/10*100*.9}px;background:${Object.values(COLORS)[j]}"></div>`).join('');
+    const priC = s.priority==='PRIORITY 1'?'pri-p1':s.priority==='Priority 2'?'pri-p2':'pri-pm';
+    return `<tr>
+      <td style="color:var(--mist);font-size:11px">${i+1}</td>
+      <td>
+        <div class="td-site">${s.site}</div>
+        <div class="td-city">${s.city}</div>
+      </td>
+      <td><span class="type-chip ${typeClass(s.type)}">${s.type}</span></td>
+      <td>
+        <span class="score-num" style="color:${sColor(s.score)}">${s.score.toFixed(2)}</span>
+        <div class="micro-bar" style="margin-top:4px">${segs}</div>
+      </td>
+      <td style="font-size:12px">${s.venue_quality.toFixed(1)}</td>
+      <td style="font-size:12px">${s.trade_area.toFixed(1)}</td>
+      <td style="font-size:12px">${s.cotenancy.toFixed(1)}</td>
+      <td style="font-size:12px">${s.accessibility.toFixed(1)}</td>
+      <td style="font-size:12px">${s.re_econ.toFixed(1)}</td>
+      <td>${check(s.lululemon)}</td>
+      <td>${check(s.apple)}</td>
+      <td style="font-size:12px;color:${s.occ_pct>15?'#9b2335':'#276749'}">${s.occ_pct}%</td>
+      <td><span class="pri-tag ${priC}">${s.priority}</span></td>
+    </tr>`;
+  }).join('');
+}
+
+function buildMarketFilter(){
+  const div = document.getElementById('mkt-filter');
+  const mkts = ['All',...MARKETS];
+  div.innerHTML = mkts.map(m=>`
+    <button class="mkt-btn ${m==='All'?'active':''}" onclick="filterMatrix('${m}',this)">${m==='All'?'All Markets':MKTSHORT[m]||m}</button>
+  `).join('');
+}
+function filterMatrix(m,btn){
+  document.querySelectorAll('.mkt-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  buildMatrix(m);
+}
+
+// ── CHARTS ──
+const charts = {};
+function destroyChart(id){ if(charts[id]){charts[id].destroy();delete charts[id];} }
+
+function buildCharts(){
+  // Scatter: score vs occ%
+  destroyChart('scatter');
+  charts['scatter'] = new Chart(document.getElementById('scatterChart'),{
+    type:'scatter',
+    data:{datasets:MARKETS.map((m,mi)=>({
+      label:MKTSHORT[m],
+      data:SITES.filter(s=>s.market===m).map(s=>({x:s.occ_pct,y:s.score,label:s.site})),
+      backgroundColor:Object.values(COLORS)[mi]+'cc',
+      pointRadius:7,pointHoverRadius:10
+    }))},
+    options:{
+      plugins:{legend:{position:'bottom',labels:{font:{size:10},boxWidth:10,padding:8}},
+        tooltip:{callbacks:{label:ctx=>`${ctx.raw.label}: ${ctx.raw.y.toFixed(2)} score, ${ctx.raw.x}% occ`}}},
+      scales:{
+        x:{title:{display:true,text:'Occupancy Cost %',font:{size:10},color:'#718096'},
+          grid:{color:'rgba(0,0,0,.06)'},ticks:{font:{size:9},color:'#718096'},min:0,max:15},
+        y:{title:{display:true,text:'Composite Score',font:{size:10},color:'#718096'},
+          grid:{color:'rgba(0,0,0,.06)'},ticks:{font:{size:9},color:'#718096'},min:6,max:10}
+      }
+    }
+  });
+
+  // Radar: avg scores by market
+  destroyChart('radar');
+  const dims = ['venue_quality','trade_area','cotenancy','accessibility','re_econ'];
+  const dimLabels = ['Venue','Trade Area','Co-Tenancy','Access','RE Econ'];
+  const avgByMarket = MARKETS.map(m=>{
+    const ms = SITES.filter(s=>s.market===m);
+    return dims.map(d=> +(ms.reduce((a,s)=>a+s[d],0)/ms.length).toFixed(2));
+  });
+  charts['radar'] = new Chart(document.getElementById('radarChart'),{
+    type:'radar',
+    data:{
+      labels:dimLabels,
+      datasets:MARKETS.map((m,i)=>({
+        label:MKTSHORT[m],
+        data:avgByMarket[i],
+        backgroundColor:Object.values(COLORS)[i]+'30',
+        borderColor:Object.values(COLORS)[i],
+        pointBackgroundColor:Object.values(COLORS)[i],
+        borderWidth:1.5,
+        pointRadius:3,
+      }))
+    },
+    options:{
+      plugins:{legend:{position:'bottom',labels:{font:{size:10},boxWidth:10,padding:8}}},
+      scales:{r:{min:5,max:10,grid:{color:'rgba(0,0,0,.06)'},
+        ticks:{font:{size:8},color:'#718096',stepSize:1},
+        pointLabels:{font:{size:10},color:'#444'}}}
+    }
+  });
+}
+
+// ── RECOMMENDATIONS ──
+const REC_DATA = [
+  {site:'Westfield UTC',market:'San Diego',score:9.15,
+   bullets:['Top-ranked site overall — strongest venue + trade area combination in the analysis','Nordstrom, Apple, Equinox, Whole Foods, lululemon already co-located — nearly perfect co-tenancy','La Jolla / Torrey Pines 5-mi ring: 38% HH $150K+, UCSD/biotech/pharma employee base','Occ. cost 7.2% — most favorable economics of any top-10 site','Natural "second site" in San Diego after Fashion Valley; different geographic sub-market'],
+   rent:108,sqft:2600,occ:7.2,type:'mall'},
+  {site:'Domain NORTHSIDE',market:'Austin',score:9.03,
+   bullets:['Extends Alo's existing Domain presence into the premium expansion of the same lifestyle center','Apple, lululemon, Free People — identical co-tenancy to Alo's strongest existing locations','Amazon, Indeed, Meta offices within 1 mile — built-in tech-worker customer traffic','$100/sqft rent is justified by $1,600/sqft revenue potential at lifestyle-premium tier','Cluster-builds Austin to 2 locations in the city's #1 wellness retail corridor'],
+   rent:100,sqft:2600,occ:6.2,type:'lifestyle'},
+  {site:'Highland Park Village',market:'Dallas-Fort Worth',score:8.97,
+   bullets:['America's oldest shopping center; Park Cities zip codes average $300K+ median HH income — Alo's exact top decile customer','lululemon, Hermès, Chanel neighbor proximity validates extreme luxury positioning','Equinox co-location drives shared yoga/fitness customer overlap','Highest venue quality score (10.0) and trade area score (10.0) in the entire 21-site dataset','Premium $140/sqft rent offset by $2,000/sqft luxury-tier revenue projection — 7% occupancy cost'],
+   rent:140,sqft:2200,occ:7.0,type:'lifestyle'},
+  {site:'University Village',market:'Seattle-Tacoma',score:8.80,
+   bullets:['Open-air lifestyle format perfectly aligned with Alo's outdoor/wellness brand identity','lululemon, Apple, REI, Patagonia, Free People — most on-brand co-tenancy in the dataset','UW campus adjacency + tech-corridor proximity (Amazon, Google, Microsoft within commuting range)','Highest trade area score in Seattle (9.0) — densest concentration of target customers','Recommended as Seattle entry point over Bellevue Square: brand fit outweighs incremental volume'],
+   rent:95,sqft:2400,occ:5.9,type:'lifestyle'},
+  {site:'Legacy West',market:'Dallas-Fort Worth',score:8.78,
+   bullets:['Tech-corridor location (Toyota HQ, JPMorgan, Liberty Mutual campuses within 1mi)','lululemon, Apple, Whole Foods, REI — outstanding wellness lifestyle co-tenancy','Plano/Frisco demographic: high-income young professional families, age 28–42 sweet spot','Best second DFW location after Highland Park — captures different geographic sub-market','Open-air lifestyle format preferred by Alo over enclosed mall; consistent with 24% of existing portfolio'],
+   rent:95,sqft:2600,occ:5.9,type:'lifestyle'},
+  {site:'Westfield Bellevue Square',market:'Seattle-Tacoma',score:8.70,
+   bullets:['Bellevue's premier enclosed mall — Nordstrom, Neiman Marcus, Apple, lululemon all present','5-mi ring: 42% HH $150K+ — highest wealth concentration of any Seattle-area site','Ideal second Seattle location after University Village; reaches Eastside tech-worker customer','$110/sqft rent justified by top-25 national mall revenue tier ($1,500/sqft benchmark)','Bellevue Square volume + University Village brand positioning creates the cluster Alo needs'],
+   rent:110,sqft:2800,occ:7.3,type:'mall'},
+];
+
+function buildRecs(){
+  document.getElementById('rec-grid').innerHTML = REC_DATA.map(r=>`
+    <div class="rec-card">
+      <div class="rec-header">
+        <div class="rec-header-left">
+          <h3>${r.site}</h3>
+          <div class="rec-market">${r.market}</div>
+        </div>
+        <div class="rec-score-badge" style="color:${sColor(r.score)}">${r.score.toFixed(2)}</div>
+      </div>
+      <div class="rec-body">
+        <ul class="rec-bullets">${r.bullets.map(b=>`<li>${b}</li>`).join('')}</ul>
+      </div>
+      <div class="rec-footer">
+        <span>$${r.rent}/sqft &nbsp;·&nbsp; ${r.sqft.toLocaleString()} sqft &nbsp;·&nbsp; Occ ${r.occ}%</span>
+        <span class="type-chip ${typeClass(r.type)}">${r.type}</span>
+      </div>
+    </div>
+  `).join('');
+}
+
+function buildTimeline(){
+  const waves = [
+    {label:'Wave 1 · Months 1–6',color:'#276749',
+     sites:[
+       {name:'University Village',mkt:'Seattle',note:'Entry — brand fit'},
+       {name:'Westfield UTC',mkt:'San Diego',note:'Entry — premier mall'},
+     ]},
+    {label:'Wave 2 · Months 7–12',color:'#2c5282',
+     sites:[
+       {name:'Highland Park Village',mkt:'Dallas',note:'Prestige anchor'},
+       {name:'Domain NORTHSIDE',mkt:'Austin',note:'Cluster building'},
+     ]},
+    {label:'Wave 3 · Months 13–18',color:'#744210',
+     sites:[
+       {name:'Bellevue Square',mkt:'Seattle',note:'Volume cluster'},
+       {name:'Legacy West',mkt:'Dallas',note:'Tech corridor'},
+       {name:'Southpoint Mall',mkt:'Raleigh-Durham',note:'Market entry'},
+     ]},
+  ];
+  document.getElementById('timeline').innerHTML = waves.map(w=>`
+    <div class="tl-item">
+      <div class="tl-dot" style="background:${w.color}"></div>
+      <div class="tl-wave">${w.label}</div>
+      <div class="tl-sites">
+        ${w.sites.map(s=>`<div class="tl-site-chip">
+          <strong>${s.name}</strong>
+          <span>${s.mkt} · ${s.note}</span>
+        </div>`).join('')}
+      </div>
+    </div>
+  `).join('');
+}
+
+// ── INIT ──
+document.addEventListener('DOMContentLoaded',()=>{
+  buildCards();
+  buildMarketFilter();
+  buildMatrix('All');
+  buildRecs();
+  buildTimeline();
+});
+</script>
+</body>
+</html>
