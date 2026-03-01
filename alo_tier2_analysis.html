@@ -1,9 +1,9 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
+  <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Alo<sup style="font-size:0.55em;vertical-align:super;letter-spacing:0">®</sup> — Tier 2 Site-Level Analysis</title>
+<title>Alo® — Tier 2 Site-Level Analysis</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=Libre+Franklin:wght@200;300;400;500&display=swap" rel="stylesheet">
 <style>
@@ -753,7 +753,7 @@ function pipClass(p){ return p==='PRIORITY 1'?'p1':p==='Priority 2'?'p2':'pm'; }
 function typeClass(t){ return 'tc-'+t.replace('_','-'); }
 function priClass(p){ return p==='PRIORITY 1'?'pri-p1':p==='Priority 2'?'pri-p2':'pri-pm'; }
 
-// ── TAB SWITCHING ──
+// -- TAB SWITCHING --
 function showPane(id,btn){
   document.querySelectorAll('.pane').forEach(p=>p.classList.remove('active'));
   document.querySelectorAll('.rnav-btn').forEach(b=>b.classList.remove('active'));
@@ -762,7 +762,7 @@ function showPane(id,btn){
   if(id==='matrix') buildCharts();
 }
 
-// ── SITE CARDS ──
+// -- SITE CARDS --
 function buildCards(){
   const grid = document.getElementById('card-grid');
   grid.innerHTML = SITES.map((s,i)=>{
@@ -793,17 +793,17 @@ function buildCards(){
     const isOpened = s.status === 'OPENED';
     return `<div class="site-card ${isOpened?'card-opened':''}" onclick="toggleCard(this,${i})">
       <div class="priority-pip ${pipClass(s.priority)}"></div>
-      ${isOpened ? '<div class="status-opened-badge">✓ NOW OPEN</div>' : ''}
-      <div class="sc-rank">${String(i+1).padStart(2,'0')} · ${MKTSHORT[s.market]}</div>
+      ${isOpened ? '<div class="status-opened-badge">v NOW OPEN</div>' : ''}
+      <div class="sc-rank">${String(i+1).padStart(2,'0')} . ${MKTSHORT[s.market]}</div>
       <div class="sc-name">${s.site}</div>
-      <div class="sc-sub">${s.city}, ${s.state} · <span class="type-chip ${typeClass(s.type)}">${s.type}</span></div>
+      <div class="sc-sub">${s.city}, ${s.state} . <span class="type-chip ${typeClass(s.type)}">${s.type}</span></div>
       <div class="sc-score-row">
         <div class="sc-score-big" style="color:${scoreColor}">${s.score.toFixed(2)}</div>
         <div class="sc-bars">${bars}</div>
       </div>
       <div class="sc-badges">${badges.join('')}</div>
       <div class="sc-occ" style="color:${s.occ_pct>15?'#9b2335':s.occ_pct>10?'#744210':'#276749'}">
-        Occ. Cost: ${s.occ_pct}% &nbsp;·&nbsp; $${s.est_rent_psf}/sqft &nbsp;·&nbsp; ${s.est_sqft.toLocaleString()} sqft est.
+        Occ. Cost: ${s.occ_pct}% &nbsp;.&nbsp; $${s.est_rent_psf}/sqft &nbsp;.&nbsp; ${s.est_sqft.toLocaleString()} sqft est.
       </div>
       <div class="sc-notes">${s.notes}</div>
     </div>`;
@@ -815,14 +815,14 @@ function toggleCard(el,i){
   el.classList.add('active');
 }
 
-// ── MATRIX TABLE ──
+// -- MATRIX TABLE --
 let activeMarket = 'All';
 function buildMatrix(mkt){
   activeMarket = mkt || activeMarket;
   const rows = SITES.filter(s=> activeMarket==='All' || s.market===activeMarket);
   const body = document.getElementById('matrix-body');
   body.innerHTML = rows.map((s,i)=>{
-    const check = v => v ? '<span style="color:var(--green);font-size:14px">✓</span>' : '<span style="color:#ddd">–</span>';
+    const check = v => v ? '<span style="color:var(--green);font-size:14px">v</span>' : '<span style="color:#ddd">-</span>';
     const w = [.25,.25,.25,.15,.10];
     const vs = [s.venue_quality,s.trade_area,s.cotenancy,s.accessibility,s.re_econ];
     const segs = vs.map((v,j)=>`<div class="mb-seg" style="width:${v/10*100*.9}px;background:${Object.values(COLORS)[j]}"></div>`).join('');
@@ -864,7 +864,7 @@ function filterMatrix(m,btn){
   buildMatrix(m);
 }
 
-// ── CHARTS ──
+// -- CHARTS --
 const charts = {};
 function destroyChart(id){ if(charts[id]){charts[id].destroy();delete charts[id];} }
 
@@ -922,57 +922,105 @@ function buildCharts(){
   });
 }
 
-// ── RECOMMENDATIONS ──
+// -- RECOMMENDATIONS --
 const REC_DATA = [
-  {site:'Westfield UTC',market:'San Diego',score:9.15,
-   bullets:[
-     'Top-ranked site overall — strongest venue + trade area combination in the analysis',
-     'Nordstrom, Apple, Equinox, Whole Foods, lululemon already co-located — nearly perfect co-tenancy',
-     'La Jolla / Torrey Pines 5-mi ring: 38% HH $150K+, UCSD/biotech/pharma employee base',
-     'Occ. cost 7.2% — most favorable economics of any top-10 site',
-     'Natural second site in San Diego after Fashion Valley; different geographic sub-market'],
-   rent:108,sqft:2600,occ:7.2,type:'mall'},
-  {site:'Domain NORTHSIDE',market:'Austin',score:9.03,
-   bullets:[
-     "Extends Alo's existing Domain presence into the premium expansion of the same lifestyle center",
-     "Apple, lululemon, Free People — identical co-tenancy to Alo's strongest existing locations",
-     'Amazon, Indeed, Meta offices within 1 mile — built-in tech-worker customer traffic',
-     '$100/sqft rent is justified by $1,600/sqft revenue potential at lifestyle-premium tier',
-     "Cluster-builds Austin to 2 locations in the city's #1 wellness retail corridor"],
-   rent:100,sqft:2600,occ:6.2,type:'lifestyle'},
-  {site:'Highland Park Village',market:'Dallas-Fort Worth',score:8.97,
-   bullets:[
-     "America's oldest shopping center; Park Cities zip codes average $300K+ median HH income — Alo's exact top decile customer",
-     'lululemon, Hermès, Chanel neighbor proximity validates extreme luxury positioning',
-     'Equinox co-location drives shared yoga/fitness customer overlap',
-     'Highest venue quality score (10.0) and trade area score (10.0) in the entire 21-site dataset',
-     'Premium $140/sqft rent offset by $2,000/sqft luxury-tier revenue projection — 7% occupancy cost'],
-   rent:140,sqft:2200,occ:7.0,type:'lifestyle'},
-  {site:'University Village',market:'Seattle-Tacoma',score:8.80,
-   bullets:[
-     "Open-air lifestyle format perfectly aligned with Alo's outdoor/wellness brand identity",
-     'lululemon, Apple, REI, Patagonia, Free People — most on-brand co-tenancy in the dataset',
-     'UW campus adjacency + tech-corridor proximity (Amazon, Google, Microsoft within commuting range)',
-     'Highest trade area score in Seattle (9.0) — densest concentration of target customers',
-     'Recommended as Seattle entry point over Bellevue Square: brand fit outweighs incremental volume'],
-   rent:95,sqft:2400,occ:5.9,type:'lifestyle'},
-  {site:'Legacy West',market:'Dallas-Fort Worth',score:8.78,
-   bullets:[
-     'Tech-corridor location (Toyota HQ, JPMorgan, Liberty Mutual campuses within 1mi)',
-     'lululemon, Apple, Whole Foods, REI — outstanding wellness lifestyle co-tenancy',
-     'Plano/Frisco demographic: high-income young professional families, age 28-42 sweet spot',
-     'Best second DFW location after Highland Park — captures different geographic sub-market',
-     'Open-air lifestyle format preferred by Alo over enclosed mall; consistent with 24% of existing portfolio'],
-   rent:95,sqft:2600,occ:5.9,type:'lifestyle'},
-  {site:'Westfield Bellevue Square',market:'Seattle-Tacoma',score:8.70,
-   bullets:[
-     "Bellevue's premier enclosed mall — Nordstrom, Neiman Marcus, Apple, lululemon all present",
-     '5-mi ring: 42% HH $150K+ — highest wealth concentration of any Seattle-area site',
-     'Ideal second Seattle location after University Village; reaches Eastside tech-worker customer',
-     '$110/sqft rent justified by top-25 national mall revenue tier ($1,500/sqft benchmark)',
-     'Bellevue Square volume + University Village brand positioning creates the cluster Alo needs'],
-   rent:110,sqft:2800,occ:7.3,type:'mall'},
-];
+  {
+    "site": "Westfield UTC",
+    "market": "San Diego",
+    "score": 9.15,
+    "bullets": [
+      "Top-ranked site overall -- strongest venue and trade area combination in the analysis",
+      "Nordstrom, Apple, Equinox, Whole Foods, lululemon already co-located -- nearly perfect co-tenancy",
+      "La Jolla / Torrey Pines 5-mi ring: 38% HH $150K+, UCSD/biotech/pharma employee base",
+      "Occ. cost 7.2% -- most favorable economics of any top-10 site",
+      "Natural second site in San Diego after Fashion Valley; different geographic sub-market"
+    ],
+    "rent": 108,
+    "sqft": 2600,
+    "occ": 7.2,
+    "type": "mall"
+  },
+  {
+    "site": "Domain NORTHSIDE",
+    "market": "Austin",
+    "score": 9.03,
+    "bullets": [
+      "Extends Alo existing Domain presence into the premium expansion of the same lifestyle center",
+      "Apple, lululemon, Free People -- identical co-tenancy to Alo strongest existing locations",
+      "Amazon, Indeed, Meta offices within 1 mile -- built-in tech-worker customer traffic",
+      "$100/sqft rent is justified by $1,600/sqft revenue potential at lifestyle-premium tier",
+      "Cluster-builds Austin to 2 locations in the city #1 wellness retail corridor"
+    ],
+    "rent": 100,
+    "sqft": 2600,
+    "occ": 6.2,
+    "type": "lifestyle"
+  },
+  {
+    "site": "Highland Park Village",
+    "market": "Dallas-Fort Worth",
+    "score": 8.97,
+    "bullets": [
+      "America oldest shopping center; Park Cities zip codes average $300K+ median HH income -- Alo exact top-decile customer",
+      "lululemon, Hermes, Chanel neighbor proximity validates extreme luxury positioning",
+      "Equinox co-location drives shared yoga/fitness customer overlap",
+      "Highest venue quality score (10.0) and trade area score (10.0) in the entire 21-site dataset",
+      "Premium $140/sqft rent offset by $2,000/sqft luxury-tier revenue projection -- 7% occupancy cost"
+    ],
+    "rent": 140,
+    "sqft": 2200,
+    "occ": 7.0,
+    "type": "lifestyle"
+  },
+  {
+    "site": "University Village",
+    "market": "Seattle-Tacoma",
+    "score": 8.8,
+    "bullets": [
+      "Open-air lifestyle format perfectly aligned with Alo outdoor/wellness brand identity",
+      "lululemon, Apple, REI, Patagonia, Free People -- most on-brand co-tenancy in the dataset",
+      "UW campus adjacency + tech-corridor proximity (Amazon, Google, Microsoft within commuting range)",
+      "Highest trade area score in Seattle (9.0) -- densest concentration of target customers",
+      "Recommended as Seattle entry point over Bellevue Square: brand fit outweighs incremental volume"
+    ],
+    "rent": 95,
+    "sqft": 2400,
+    "occ": 5.9,
+    "type": "lifestyle"
+  },
+  {
+    "site": "Legacy West",
+    "market": "Dallas-Fort Worth",
+    "score": 8.78,
+    "bullets": [
+      "Tech-corridor location (Toyota HQ, JPMorgan, Liberty Mutual campuses within 1mi)",
+      "lululemon, Apple, Whole Foods, REI -- outstanding wellness lifestyle co-tenancy",
+      "Plano/Frisco demographic: high-income young professional families, age 28-42 sweet spot",
+      "Best second DFW location after Highland Park -- captures different geographic sub-market",
+      "Open-air lifestyle format preferred by Alo; consistent with 24% of existing portfolio"
+    ],
+    "rent": 95,
+    "sqft": 2600,
+    "occ": 5.9,
+    "type": "lifestyle"
+  },
+  {
+    "site": "Westfield Bellevue Square",
+    "market": "Seattle-Tacoma",
+    "score": 8.7,
+    "bullets": [
+      "Bellevue premier enclosed mall -- Nordstrom, Neiman Marcus, Apple, lululemon all present",
+      "5-mi ring: 42% HH $150K+ -- highest wealth concentration of any Seattle-area site",
+      "Ideal second Seattle location after University Village; reaches Eastside tech-worker customer",
+      "$110/sqft rent justified by top-25 national mall revenue tier ($1,500/sqft benchmark)",
+      "Bellevue Square volume + University Village brand positioning creates the cluster Alo needs"
+    ],
+    "rent": 110,
+    "sqft": 2800,
+    "occ": 7.3,
+    "type": "mall"
+  }
+]
 
 function buildRecs(){
   document.getElementById('rec-grid').innerHTML = REC_DATA.map(r=>`
@@ -988,7 +1036,7 @@ function buildRecs(){
         <ul class="rec-bullets">${r.bullets.map(b=>`<li>${b}</li>`).join('')}</ul>
       </div>
       <div class="rec-footer">
-        <span>$${r.rent}/sqft &nbsp;·&nbsp; ${r.sqft.toLocaleString()} sqft &nbsp;·&nbsp; Occ ${r.occ}%</span>
+        <span>$${r.rent}/sqft &nbsp;.&nbsp; ${r.sqft.toLocaleString()} sqft &nbsp;.&nbsp; Occ ${r.occ}%</span>
         <span class="type-chip ${typeClass(r.type)}">${r.type}</span>
       </div>
     </div>
@@ -997,17 +1045,17 @@ function buildRecs(){
 
 function buildTimeline(){
   const waves = [
-    {label:'Wave 1 · Months 1–6',color:'#276749',
+    {label:'Wave 1 . Months 1-6',color:'#276749',
      sites:[
-       {name:'University Village',mkt:'Seattle',note:'Entry — brand fit'},
-       {name:'Westfield UTC',mkt:'San Diego',note:'Entry — premier mall'},
+       {name:'University Village',mkt:'Seattle',note:'Entry -- brand fit'},
+       {name:'Westfield UTC',mkt:'San Diego',note:'Entry -- premier mall'},
      ]},
-    {label:'Wave 2 · Months 7–12',color:'#2c5282',
+    {label:'Wave 2 . Months 7-12',color:'#2c5282',
      sites:[
        {name:'Highland Park Village',mkt:'Dallas',note:'Prestige anchor'},
        {name:'Domain NORTHSIDE',mkt:'Austin',note:'Cluster building'},
      ]},
-    {label:'Wave 3 · Months 13–18',color:'#744210',
+    {label:'Wave 3 . Months 13-18',color:'#744210',
      sites:[
        {name:'Bellevue Square',mkt:'Seattle',note:'Volume cluster'},
        {name:'Legacy West',mkt:'Dallas',note:'Tech corridor'},
@@ -1021,14 +1069,14 @@ function buildTimeline(){
       <div class="tl-sites">
         ${w.sites.map(s=>`<div class="tl-site-chip">
           <strong>${s.name}</strong>
-          <span>${s.mkt} · ${s.note}</span>
+          <span>${s.mkt} . ${s.note}</span>
         </div>`).join('')}
       </div>
     </div>
   `).join('');
 }
 
-// ── INIT ──
+// -- INIT --
 document.addEventListener('DOMContentLoaded',()=>{
   buildCards();
   buildMarketFilter();
